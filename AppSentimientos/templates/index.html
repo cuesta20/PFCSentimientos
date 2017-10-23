@@ -1,0 +1,183 @@
+﻿{% extends "base.html" %}
+{% block title %}ANALISIS DE SENTIMIENTOS{% endblock %}
+{% block contenido %}
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+<script language="javascript">
+ var neutral=0.0;
+ var polar=0.0;
+ var positiva=0.0;
+ var negativa=0.0; 
+ var campoActual="";
+ var idActual=0;
+ var texto="";
+ var textoGoblal="";
+
+ Bayes.train = function (text, label) {
+    registerLabel(label);
+    var words = tokenize(text);
+    var length = words.length;
+    for (var i = 0; i < length; i++)
+        incrementStem(words[i], label);
+    incrementDocCount(label);
+};
+
+var tokenize = function (text) {
+    text = text.toLowerCase().replace(/\W/g, ' ').replace(/\s+/g, ' ').trim().split(' ').unique();
+    return text;
+};
+
+function asyncChange()
+{
+    var request;
+    if (window.XMLHttpRequest) {
+        request = new window.XMLHttpRequest();
+    } else {
+        request = new window.ActiveXObject("Microsoft.XMLHTTP");
+    }
+    request.open("GET", "resultado.py", true);
+    request.send();
+   
+    request.onreadystatechange = function()
+    {
+        if (request.readyState == 4 && request.status == 200)
+        {
+            document.getElementById("txtResultado").innerHTML = "Resultado: " + request.responseText + "";
+        }
+    }
+}
+
+function idioma()
+{
+ var cadena = document.formulario.opcion.value;
+ cadena=cadena.toUpperCase();
+ var campoActual="";
+ var idActual=0;
+ alert('Texto a Analizar en Idioma: '+cadena);
+ if (cadena=="")
+ {
+  alert("Tienes que elegir un idioma");
+  return;
+ }
+
+ if (cadena=="CASTELLANO")  { cadena=1;}
+ else if (cadena=="INGLES"){ cadena=2;}
+ else if (cadena=="FRANCES") { cadena=3;}
+ else 
+ { 
+  alert(" El Idioma seleccionado no Existe en el Sitio WEB"); 
+  return;
+  }
+ return;
+}
+
+function limpiar()
+{
+ document.getElementById("txt1").value="";
+ return;
+ }
+ 
+</script>
+<script language="text/javascript">
+
+ $("#button_rest").click(function(){
+         load_pos_rest();
+      });
+	  
+function load_pos_rest()
+{
+    $.get("/pos/pos_rest/", function(data){
+        for(i=0; i<data.length; i++){
+            $("#div_rest_pos").append('<span>'+data[i].name+' - '+data[i].brand+'</span><br/>');
+        }
+    });
+</script>
+
+<center>
+<div id="resultado" >
+{% block encabezado %}<h1> >> ANALISIS DE SENTIMIENTOS << </h1>{% endblock%}
+<h3>[ Introduzca hasta un maximo de 50000 caracteres ] <h3> 
+
+<script language="text/javascript">
+$('#btn1').click(function() {
+    var a;
+    var outputR;
+    console.log("click");
+    a=$('#txt1').val();
+    $.ajax({
+        method: 'POST',
+        url: '/indice'  //ruta de la vista definida en django
+        data: {
+            'a': a,
+        },
+        dataType: "json",
+        success: function(response) {
+            $('#outputR').val(response.resultado);
+        }
+    }); 
+});
+
+
+</script>
+
+<script>
+function myFunction() {
+    var x = document.createElement("INPUT");
+    x.setAttribute("type", "text");
+    x.setAttribute("value", "0");
+    document.body.appendChild(x);
+}
+</script>
+
+<form name='form1' id="form1" action="" method="post">
+ {% csrf_token %}
+    {{ form }}
+<table name="tabla1" border="0">
+<tr>
+<td ALIGN="RIGHT">Idioma:  </td>
+<td align="left">
+<select onChange="javascript:idioma();" name="oIdioma">
+  <option value="Castellano">Castellano</option>
+  <option value="Ingles">Ingles</option>
+  <option value="Frances">Frances</option>
+</select>
+</td>
+<td align="left"></td>
+</tr>
+<tr>
+<td ALIGN="RIGHT">Algoritmo:  </td>
+<td align="left">
+<select onChange="javascript:algoritmo();" name="OAlgoritmo">
+  <option value="Bayes">Naive Bayes</option>
+  <option value="SVM">SVM</option>
+  <option value="Random Forest">Random Forest</option>
+  <option value="Arbol">Árbol de Decisión</option>
+  <option value="LDA">LDA</option>
+  </select>
+</td>
+<td align="left"></td>
+</td>
+</tr>
+<tr>
+<td ALIGN="RIGHT">Introduzca el texto:  </td>
+<td align="left"><textarea rows="30" cols="180" name="txt1" id="txt1"></textarea></td>
+<td align="left"></td>
+</tr>
+<tr>
+<td ALIGN="left"></td>
+<td align="left">
+	 <input type="submit" id="btn1" name="btn1" size="60" value="Analizar">
+	 <button type="button" onclick="limpiar();"  id="btnLimpiar" name="btnLimpiar" size="60">Limpiar</button>
+</td>
+<td align="left"></td>
+</tr>
+</table>
+</form>
+
+{% endblock %}
+</div> 
+</center>
+
+
+
+
+
